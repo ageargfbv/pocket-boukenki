@@ -58,6 +58,32 @@ body{padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 #bA{right:0;top:10px}
 #bB{left:6px;top:56px}
 button:active{filter:brightness(1.25)}
+#hud{position:absolute;top:0;bottom:0;left:0;width:100%;pointer-events:none}
+
+/* 横持ち：ゲーム画面を全面に、キーと文章は半透明で重ねる */
+@media (orientation:landscape){
+  html,body{overflow:hidden;background:#000}
+  #wrap{max-width:none;padding:0}
+  #screen{position:fixed;inset:0;width:auto;aspect-ratio:auto;border:none;border-radius:0}
+  #cv{object-fit:contain}
+  #place{left:calc(10px + env(safe-area-inset-left))}
+  #panel{position:fixed;z-index:5;bottom:calc(6px + env(safe-area-inset-bottom));left:calc(170px + env(safe-area-inset-left));right:calc(160px + env(safe-area-inset-right));
+    min-height:0;max-height:52vh;overflow:auto;background:rgba(251,248,239,.9);font-size:16px;padding:6px 12px;border-width:2px}
+  #panel:has(#msg:empty):has(#menu:empty){display:none}
+  #msg:empty{display:none}
+  #menu.short{grid-template-columns:repeat(4,1fr)!important}
+  .opt{padding:3px 6px 3px 22px}
+  .opt.cur::before{top:4px}
+  #pad{position:fixed;inset:0;z-index:4;pointer-events:none;display:block;min-height:0;padding:0}
+  #pad button,#dpad{pointer-events:auto}
+  #dpad{position:fixed;left:calc(12px + env(safe-area-inset-left));bottom:calc(12px + env(safe-area-inset-bottom));
+    grid-template-columns:repeat(3,48px);grid-template-rows:repeat(3,48px)}
+  #dpad button,#dpad .c{background:rgba(255,255,255,.16);color:rgba(255,255,255,.75)}
+  #mid{position:fixed;top:calc(10px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));margin:0}
+  #bStart{background:rgba(255,255,255,.18);color:rgba(255,255,255,.85)}
+  #ab{position:fixed;right:calc(8px + env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom));width:136px;height:120px}
+  #ab button{background:rgba(224,72,72,.42);box-shadow:none;color:rgba(255,255,255,.9)}
+}
 </style>
 </head>
 <body>

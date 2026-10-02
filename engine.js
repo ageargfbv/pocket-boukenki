@@ -1,7 +1,8 @@
 // ポケット冒険記のエンジン。中身（街・モンスター・技）は data.js。ここは動かす仕組みだけ。
 "use strict";
 const SAVE_KEY = "pocket-boukenki-v1";
-const T = 16, VW = 15, VH = 10;               // 1マス16ドット、画面は15×10マス（240×160）
+const T = 16, VH = 10;                        // 1マス16ドット。縦は10マス（160ドット）
+let SW = 240;                                 // 画面の横幅（縦持ち240、横持ちは端末の比率に合わせて最大400）
 const $ = id => document.getElementById(id);
 const rnd = n => Math.floor(Math.random() * n);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -50,6 +51,7 @@ function choose(options, {text = null, cols = 1, cancel = true, start = 0, note 
     $("msg").classList.remove("more");
     const menu = $("menu"); let cur = clamp(start, 0, options.length - 1);
     menu.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+    menu.classList.toggle("short", options.length <= 4 && options.every(o => o.length <= 8));   // 横持ちで1行に並べる
     const draw = () => {
       menu.innerHTML = "";
       options.forEach((o, i) => {
@@ -78,6 +80,13 @@ async function fade(on){ $("fade").style.opacity = on ? 1 : 0; await wait(180); 
 // ================= 絵 =================
 const cv = $("cv"), ctx = cv.getContext("2d");
 ctx.imageSmoothingEnabled = false;
+function fit(){
+  const land = innerWidth > innerHeight;
+  const w = land ? clamp(Math.round(160 * innerWidth / innerHeight / 2) * 2, 240, 400) : 240;
+  if (w !== SW || cv.width !== w) { SW = w; cv.width = w; cv.height = 160; ctx.imageSmoothingEnabled = false; }
+  const hs = $("hud").style;                  // 戦闘の表示は中央の240ドットの範囲に置く
+  hs.left = ((SW - 240) / 2 / SW * 100) + "%"; hs.width = (240 / SW * 100) + "%";
+}
 function px(c, col, x, y, w = 1, h = 1){ c.fillStyle = col; c.fillRect(x, y, w, h); }
 const tileCache = {};
 function tileImg(ch){
@@ -274,9 +283,10 @@ const World = {
   },
   draw(){
     const off = this.moving ? this.moving : 0, [dx, dy] = DIRS[S.dir];
-    const camX = S.x * T + dx * off - 7 * T, camY = S.y * T + dy * off - 4 * T - 8;
-    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, 240, 160);
-    const x0 = Math.floor(camX / T), y0 = Math.floor(camY / T);
+    const PX = SW / 2 - 8;                      // 主人公を置く横位置（画面の真ん中）
+    const camX = S.x * T + dx * off - PX, camY = S.y * T + dy * off - 4 * T - 8;
+    ctx.fillStyle = "#000"; ctx.fillRect(0, 0, SW, 160);
+    const x0 = Math.floor(camX / T), y0 = Math.floor(camY / T), VW = Math.ceil(SW / T);
     for (let ty = y0; ty <= y0 + VH + 1; ty++) for (let tx = x0; tx <= x0 + VW + 1; tx++) {
       const ch = this.tile(tx, ty); if (ch === " ") continue;
       ctx.drawImage(tileImg(ch), tx * T - camX, ty * T - camY);
@@ -286,7 +296,7 @@ const World = {
       if (this.emote && this.emote.n === n) { const ex = n.x * T - camX + 5, ey = n.y * T - camY - 18;
         px(ctx, "#fff", ex - 1, ey - 1, 7, 12); px(ctx, "#e04848", ex + 2, ey + 1, 2, 6); px(ctx, "#e04848", ex + 2, ey + 8, 2, 2); }
     }
-    drawPerson(7 * T, 4 * T + 8 - 4, S.dir, this.moving && (Math.floor((S.x + S.y) + this.moving / 8) % 2), {cap: "#e04848", shirt: "#3a6fd0"});
+    drawPerson(PX, 4 * T + 8 - 4, S.dir, this.moving && (Math.floor((S.x + S.y) + this.moving / 8) % 2), {cap: "#e04848", shirt: "#3a6fd0"});
   },
 };
 
@@ -626,7 +636,10 @@ function hud(){
 }
 function drawBattle(){
   const g = ctx.createLinearGradient(0, 0, 0, 160); g.addColorStop(0, "#f4f1d8"); g.addColorStop(1, "#cfe8b0");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, 240, 160);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, SW, 160);
+  ctx.save(); ctx.translate((SW - 240) / 2, 0); drawBattleScene(); ctx.restore();
+}
+function drawBattleScene(){
   ctx.fillStyle = "#9ccf7a"; ctx.beginPath(); ctx.ellipse(176, 66, 44, 10, 0, 0, 7); ctx.fill();
   ctx.beginPath(); ctx.ellipse(64, 140, 54, 12, 0, 0, 7); ctx.fill();
   const now = performance.now(), blink = s => B.flash && B.flash.side === s && now < B.flash.until && Math.floor(now / 70) % 2;
@@ -634,18 +647,22 @@ function drawBattle(){
   if (B.ball) { const bx = 170 + (B.ball === 2 ? -3 : B.ball === 3 ? 3 : 0); px(ctx, "#202028", bx - 1, 49, 12, 12); px(ctx, "#e04848", bx, 50, 10, 5); px(ctx, "#fff", bx, 55, 10, 5); px(ctx, "#202028", bx, 54, 10, 1); px(ctx, "#fff", bx + 4, 53, 2, 3); }
   if (!blink("me")) { ctx.save(); ctx.translate(96, 0); ctx.scale(-1, 1); ctx.drawImage(monImg(B.me().sp), 0, 76, 72, 72); ctx.restore(); }
 }
+function drawTitle(){
+  ctx.fillStyle = "#1f3a5f"; ctx.fillRect(0, 0, SW, 160);
+  const ox = (SW - 240) / 2;
+  ["happamo", "hinokoro", "mizupyon"].forEach((sp, i) => ctx.drawImage(monImg(sp), ox + 36 + i * 60, 70, 48, 48));
+  ctx.fillStyle = "#fff"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; ctx.fillText("ポケット冒険記", SW / 2, 46);
+}
 
 // ================= 起動 =================
 function loop(){
   frame++;
-  if (mode === "world") { World.update(); World.draw(); }
+  if (mode === "title") drawTitle();
+  else if (mode === "world") { World.update(); World.draw(); }
   else if (mode === "battle" && B) drawBattle();
   requestAnimationFrame(loop);
 }
 async function title(){
-  ctx.fillStyle = "#1f3a5f"; ctx.fillRect(0, 0, 240, 160);
-  ["happamo", "hinokoro", "mizupyon"].forEach((sp, i) => ctx.drawImage(monImg(sp), 36 + i * 60, 70, 48, 48));
-  ctx.fillStyle = "#fff"; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; ctx.fillText("ポケット冒険記", 120, 46);
   const saved = loadGame();
   const ops = saved ? ["つづきから", "はじめから"] : ["はじめから"];
   const i = await choose(ops, {text: "", cancel: false});
@@ -665,5 +682,6 @@ async function title(){
   $("place").textContent = World.map.name; $("place").classList.add("show"); setTimeout(() => $("place").classList.remove("show"), 1400);
 }
 setupInput();
+fit(); addEventListener("resize", fit); addEventListener("orientationchange", () => setTimeout(fit, 200));
 requestAnimationFrame(loop);
 title();
