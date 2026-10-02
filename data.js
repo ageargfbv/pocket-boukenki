@@ -114,50 +114,89 @@ const TRAINER_CLASS = {
 };
 
 // ---- マップ。1文字=1マス
-// .地面 ,草むら =道 f花 T木 R屋根 #壁 D扉 ~水 S看板 F柵 / 屋内: _床 W壁 C台 M出口
+// .地面 ,草むら =道 f花 T木 R屋根 #壁 D扉 ~水 S看板 s砂浜の看板 F柵 b砂浜 K瓦屋根 J旅館の壁 h生け垣 P松 L灯籠 o岩
+// 屋内: _床 t畳 W壁 C台 M出口 H階段   edge:{left:"~"} 地図の外の左側を海に見せる
 // warps: [x, y, 行き先, x, y]   npcs: look={cap,shirt} talk=台詞の配列
 //   heal:true 回復  shop:[道具] 店  trainer:{cls,name,party:[[種,Lv]],after:[台詞]} sight=見える距離
 // grass: {rate: 出会いやすさ(草むら20), slots: 12枠 [種, 最低Lv, 最高Lv]（枠の確率は 20/20/10/10/10/10/5/5/4/4/1/1）}
 const MAPS = {
-  town1: {
-    name:"コモレビ町", fill:"T",
+  // 内浦・三津。OpenStreetMap の配置（tools\osm_preview.py の下敷き）を元に、遊びやすく縮めた。北が上。
+  // 本物との違い：安田屋旅館の玄関は本物は道（西）向き → 絵の都合で南向きにし、前を庭にした。
+  mito: {
+    name:"内浦・三津", fill:"T", edge:{left:"~"},
     rows:[
-      "TTTTTTTTT==TTTTTTTTT",
-      "T........==........T",
-      "T.RRRR...==...RRRR.T",
-      "T.####...==...####.T",
-      "T.#D##...==...##D#.T",
-      "T........==........T",
-      "T.ff..S..==.....ff.T",
-      "T........==........T",
-      "T........==........T",
-      "T.ff.....==....ff..T",
-      "T........==........T",
-      "T~~~~....==....~~~~T",
-      "TTTTTTTTTTTTTTTTTTTT",
+      "~~~~~~~~~bbbrrTTTTTTTTTTTTTTTT",
+      "~~~~~~~~~bbbrr..RRRRR...TTTTTT",
+      "~~~~~~~~~bbbrr..RRRRR...TTTTTT",
+      "~~~~~~~~~bbbrr..##D##..S.TTTTT",
+      "~~~~~~~~bbbbrr.........f.TTTTT",
+      "~~~~~~~~bbbbrr..RRRR......TTTT",
+      "~~~~~~~~bbbbrr..#D##.......TTT",
+      "~~~~~~~bbbbbrr.............TTT",
+      "~~~~~~~bbsbbrrhhhhhhhhhhh.f.TT",
+      "~~~~~~obbbbbrrhKKKKKKKKKh..fTT",
+      "~~~~~~obbbbbrrhKKKKKKKKKh...TT",
+      "~~~~~~obbbbbrrhKKKKKKKKKh....T",
+      "~~~~~~~bbbbbrrhJJJJDJJJJh....T",
+      "~~~~~~~bbbbbrrhP...=..PLh....T",
+      "~~~~~~~bbbbbrrS.~~.=..f.h...TT",
+      "~~~~~~~bbbbbrr======..P.h..TTT",
+      "~~~~~~~bbbbbrrhP..f...ffh..TTT",
+      "~~~~~~~bbbbbrrhhhhhhhhhhh..TTT",
+      "~~~~~~~~bbbbrr............TTTT",
+      "~~~~~~~~bbbbrr..RRRR..RRR..TTT",
+      "~~~~~~~~~bbbrr..#D##..#D#..TTT",
+      "~~~~~~~~~bbbrr.S..........TTTT",
+      "~~~~~~~~~~bbrr.......TTTTTTTTT",
+      "~~~~~~~~~~~bSSTTTTTTTTTTTTTTTT",
     ],
-    warps:[[9,0,"route1",8,17],[10,0,"route1",9,17],[3,4,"home",4,5]],
-    signs:{"6,6":"コモレビ町　木もれびの ふる しずかな 町","16,4":"カギが かかっている。"},
+    warps:[[12,0,"route1",8,17],[13,0,"route1",9,17],[19,12,"yasudaya1",6,6]],
+    signs:{
+      "9,8":"三津海水浴場　すきとおった 海の むこうに 富士山が 見える",
+      "14,14":"安田屋旅館",
+      "23,3":"千鳥海館",
+      "15,21":"↓ 伊豆・三津シーパラダイス",
+      "12,23":"この先は まだ 通れない。（じゅんびちゅう）", "13,23":"この先は まだ 通れない。（じゅんびちゅう）",
+      "18,3":"カギが かかっている。", "17,6":"カギが かかっている。", "17,20":"カギが かかっている。", "23,20":"カギが かかっている。",
+    },
     npcs:[
-      {id:"t1girl", x:12, y:8, dir:"left", look:{cap:"#d04f8a",shirt:"#f3a6c8"}, talk:["草むらに 入ると モンスターが とびだしてくるよ！","手持ちが いないうちは 入っちゃ だめ！"]},
+      {id:"mitoFisher", x:8, y:12, dir:"right", look:{cap:"#2f6fb5",shirt:"#d9d2b8"}, talk:["三津の 海は おだやかで いいぞ。","なみのりが できれば 淡島まで すぐなんだがなあ。"]},
+      {id:"mitoGirl", x:15, y:4, dir:"down", look:{cap:"#e98c2a",shirt:"#f5d43a"}, talk:["北に いくと 松月が あるよ。","みかんの どら焼きが おいしいんだ！"]},
+      {id:"mitoOld", x:18, y:18, dir:"left", look:{cap:"#888888",shirt:"#6b8e5a"}, talk:["南の シーパラは まだ じゅんびちゅう だそうじゃ。"]},
     ],
   },
-  home: {
+  yasudaya1: {
     name:"安田屋旅館", fill:"",
     rows:[
-      "WWWWWWWWWW",
-      "W________W",
-      "W________W",
-      "W________W",
-      "W________W",
-      "W________W",
-      "WWWWMMWWWW",
+      "WWWWWWWWWWWWWW",
+      "WttttW_____H_W",
+      "WttttW_______W",
+      "Wtttt________W",
+      "WttttW__CCC__W",
+      "WWWWWW_______W",
+      "W____________W",
+      "WWWWWWMMWWWWWW",
     ],
-    warps:[[4,6,"town1",3,5],[5,6,"town1",3,5]],
+    warps:[[6,7,"mito",19,13],[7,7,"mito",19,13],[11,1,"yasudaya2",11,2]],
     npcs:[
-      {id:"mom", x:2, y:2, dir:"right", look:{cap:"#7a4a2a",shirt:"#e98c5a"}, heal:true, talk:["おかえり！ すこし やすんで いきなさい。"]},
-      {id:"guest", x:7, y:3, dir:"left", look:{cap:"#333333",shirt:"#5a6f9a"}, talk:["いい 旅館だねえ。","2階から 海が よく 見えるよ。"]},
+      {id:"okami", x:9, y:3, dir:"down", look:{cap:"#3a2a2a",shirt:"#c0504d"}, heal:true, talk:["おかえりなさい。すこし やすんで いきなさいな。"]},
+      {id:"nakai", x:2, y:2, dir:"right", look:{cap:"#3a2a2a",shirt:"#6b8e5a"}, talk:["大広間の そうじちゅう です。","2階の おへやからは 海が よく 見えますよ。"]},
+      {id:"guest", x:2, y:6, dir:"right", look:{cap:"#333333",shirt:"#5a6f9a"}, talk:["文豪も とまったという 旅館なんだって。","いい ところだねえ。"]},
     ],
+  },
+  yasudaya2: {
+    name:"安田屋旅館 2かい", fill:"",
+    rows:[
+      "WWWWWWWWWWWWWW",
+      "WttttttW___H_W",
+      "WttttttW_____W",
+      "Wtttttt______W",
+      "WttttttW_____W",
+      "WttttttW_____W",
+      "WWWWWWWWWWWWWW",
+    ],
+    warps:[[11,1,"yasudaya1",11,2]],
+    signs:{"2,0":"まどの 外に 内浦の 海と 淡島が 見える。","3,0":"まどの 外に 内浦の 海と 淡島が 見える。","4,0":"まどの 外に 内浦の 海と 淡島が 見える。"},
   },
   route1: {
     name:"1ばんどうろ", fill:"T",
@@ -182,7 +221,7 @@ const MAPS = {
       "T.......==.....T",
       "TTTTTTTT==TTTTTT",
     ],
-    warps:[[8,18,"town1",9,1],[9,18,"town1",10,1],[7,0,"town2",10,11],[8,0,"town2",11,11]],
+    warps:[[8,18,"mito",12,1],[9,18,"mito",13,1],[7,0,"town2",10,11],[8,0,"town2",11,11]],
     signs:{"12,6":"1ばんどうろ　↑ ヒダマリ町　↓ コモレビ町"},
     grass:{rate:20, slots:[["koronezu",2,3],["kurowan",2,3],["koronezu",3,4],["imomu",2,3],["kurowan",3,4],["imomu",3,3],
                            ["tsubamecchi",3,4],["tsubamecchi",4,4],["koronezu",4,4],["kurowan",4,4],["pirimogu",4,4],["pirimogu",5,5]]},
@@ -248,4 +287,4 @@ const MAPS = {
     ],
   },
 };
-const START = {map:"home", x:4, y:3, dir:"down", money:3000, bag:{potion:3, ball:5}};
+const START = {map:"yasudaya2", x:3, y:3, dir:"down", money:3000, bag:{potion:3, ball:5}};

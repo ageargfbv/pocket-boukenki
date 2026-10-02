@@ -105,17 +105,32 @@ function tileImg(ch){
     case "#": px(c,"#efe3c2",0,0,16,16); px(c,"#bfae88",0,15,16,1); px(c,"#7fb3e6",5,4,6,5); px(c,"#5a6f9a",5,4,6,1); break;
     case "D": px(c,"#efe3c2",0,0,16,16); px(c,"#7a4a2a",3,3,10,13); px(c,"#5a3418",3,3,10,1); px(c,"#f5d43a",10,10,1,1); break;
     case "~": px(c,"#4a90d9",0,0,16,16); px(c,"#8cc4f0",2,4,5,1); px(c,"#8cc4f0",9,10,5,1); break;
+    case "r": px(c,"#8e8e94",0,0,16,16); [[3,2],[11,5],[6,10],[13,13],[1,12]].forEach(([x,y]) => px(c,"#7c7c82",x,y)); [[8,3],[2,7]].forEach(([x,y]) => px(c,"#a2a2a8",x,y)); break;
+    case "s": px(c,"#f0dca0",0,0,16,16); px(c,"#5a3a1e",7,9,2,6); px(c,"#5a3a1e",2,3,12,7); px(c,"#c9a77a",3,4,10,5); break;
     case "S": ground(); px(c,"#5a3a1e",7,9,2,6); px(c,"#5a3a1e",2,3,12,7); px(c,"#c9a77a",3,4,10,5); break;
     case "F": ground(); px(c,"#c9a77a",0,6,16,2); px(c,"#c9a77a",0,10,16,2); for (const x of [1,7,13]) px(c,"#8a6a45",x,4,2,10); break;
     case "W": px(c,"#c9b48a",0,0,16,16); px(c,"#8a7550",0,13,16,3); break;
     case "_": px(c,"#e8d8b0",0,0,16,16); px(c,"#dccaa0",0,0,8,8); px(c,"#dccaa0",8,8,8,8); break;
     case "C": px(c,"#8a5a3c",0,2,16,14); px(c,"#a8714c",0,2,16,3); break;
     case "M": px(c,"#e8d8b0",0,0,16,16); px(c,"#c0504d",1,2,14,12); break;
+    case "b": px(c,"#f0dca0",0,0,16,16); [[2,3],[9,2],[13,9],[5,12],[11,14]].forEach(([x,y]) => px(c,"#d9c07c",x,y)); px(c,"#fff4cf",7,7); break;
+    case "K": px(c,"#5a6478",0,0,16,16); for (let y = 3; y < 16; y += 4) px(c,"#454e60",0,y,16,1);
+      for (let x = 0; x < 16; x += 4) px(c,"#6c7690",x,0,1,16); break;
+    case "J": px(c,"#f4f0e6",0,0,16,16); px(c,"#5a3a1e",0,0,16,2); px(c,"#5a3a1e",0,0,2,16); px(c,"#5a3a1e",14,0,2,16); px(c,"#5a3a1e",0,12,16,1);
+      px(c,"#d8cfb8",4,4,8,6); for (let x = 5; x < 12; x += 3) px(c,"#b8ad92",x,4,1,6); break;
+    case "h": ground(); c.fillStyle = "#3f7d3a"; c.beginPath(); c.arc(4,9,5,0,7); c.arc(12,9,5,0,7); c.arc(8,6,5,0,7); c.fill();
+      [[4,6],[10,5],[12,10],[6,10]].forEach(([x,y]) => px(c,"#5aa04a",x,y,2,1)); break;
+    case "P": ground(); px(c,"#6b4423",7,9,2,6); c.fillStyle = "#2c5e3a";
+      c.beginPath(); c.ellipse(8,4,6,3,0,0,7); c.fill(); c.beginPath(); c.ellipse(8,9,7,3,0,0,7); c.fill(); px(c,"#3f7d4f",4,3,5,1); px(c,"#3f7d4f",3,8,6,1); break;
+    case "L": ground(); px(c,"#8a8a8a",5,13,6,2); px(c,"#9a9a9a",7,8,2,5); px(c,"#8a8a8a",4,5,8,3); px(c,"#f5d43a",6,6,4,1); px(c,"#7a7a7a",5,3,6,2); break;
+    case "o": px(c,"#4a90d9",0,0,16,16); c.fillStyle = "#7d7d86"; c.beginPath(); c.arc(8,9,6,0,7); c.fill(); px(c,"#9c9ca6",5,6,4,2); break;
+    case "H": px(c,"#a8714c",0,0,16,16); for (let y = 1; y < 16; y += 4) px(c,"#6e4529",0,y,16,1); px(c,"#c9905f",0,0,16,1); break;
+    case "t": px(c,"#cfc98f",0,0,16,16); px(c,"#8a8650",0,0,16,1); px(c,"#8a8650",0,0,1,16); px(c,"#b8b27a",0,8,16,1); break;
     default: px(c,"#000",0,0,16,16);
   }
   return tileCache[ch] = o;
 }
-const PASS = new Set([".", ",", "=", "f", "_", "M", "D"]);
+const PASS = new Set([".", ",", "=", "r", "f", "_", "M", "D", "b", "H", "t"]);
 const spriteCache = {};
 function monImg(sp){
   if (spriteCache[sp]) return spriteCache[sp];
@@ -186,7 +201,12 @@ let mode = "title", frame = 0;
 const World = {
   moving: 0, busy: false, turnWait: 0, emote: null,
   get map(){ return MAPS[S.map]; },
-  tile(x, y){ const r = this.map.rows[y]; return (r && r[x]) || this.map.fill || " "; },
+  tile(x, y){
+    const m = this.map, r = m.rows[y];
+    if (r && r[x]) return r[x];
+    if (m.edge) { if (x < 0 && m.edge.left) return m.edge.left; if (x >= (r || m.rows[0]).length && m.edge.right) return m.edge.right; }
+    return m.fill || " ";
+  },
   npcAt(x, y){ return (this.map.npcs || []).find(n => n.x === x && n.y === y); },
   warpAt(x, y){ return (this.map.warps || []).find(w => w[0] === x && w[1] === y); },
   canWalk(x, y){
@@ -666,7 +686,11 @@ async function title(){
   const saved = loadGame();
   const ops = saved ? ["つづきから", "はじめから"] : ["はじめから"];
   const i = await choose(ops, {text: "", cancel: false});
-  if (ops[i] === "つづきから") S = saved;
+  if (ops[i] === "つづきから") {
+    S = saved;
+    if (!MAPS[S.map]) { S.map = START.map; S.x = START.x; S.y = START.y; }          // 地図を作り替えたあとの古いセーブ
+    if (!MAPS[S.lastHeal.map]) S.lastHeal = {map: START.map, x: START.x, y: START.y};
+  }
   else {
     await say("ようこそ！ ここは ぬまづ。モンスターと 人が いっしょに くらす まちだ。");
     let k = -1;
